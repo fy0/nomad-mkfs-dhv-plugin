@@ -50,6 +50,7 @@ capacity_max = "500MB"
 
 parameters {
     filesystem = "ext4"
+    sparse     = true  # Default, can be set to false for pre-allocated files
 }
 
 ```
@@ -58,7 +59,11 @@ parameters {
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `filesystem` | Filesystem type to create (ext4, xfs, etc.) | `ext4` |
+| `filesystem` | Filesystem type to create (ext4, xfs, btrfs, etc.) | `ext4` |
+| `sparse` | Create sparse file (recommended for better performance) | `true` |
+| `block_size` | Block size for the filesystem (filesystem-specific) | `""` (auto) |
+| `mount_options` | Additional mount options | `""` |
+| `read_only` | Mount as read-only | `false` |
 
 ## Development
 

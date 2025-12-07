@@ -12,6 +12,23 @@ import (
 )
 
 func Create(cfg config.DynamicHostVolumeConfig) error {
+	// 打印所有接收到的配置
+	log.Printf("========================================")
+	log.Printf("DEBUG: Create() called with configuration:")
+	log.Printf("  Operation:        %s", cfg.Operation)
+	log.Printf("  VolumesDir:       %s", cfg.VolumesDir)
+	log.Printf("  VolumeID:         %s", cfg.VolumeID)
+	log.Printf("  PluginDir:        %s", cfg.PluginDir)
+	log.Printf("  Namespace:        %s", cfg.Namespace)
+	log.Printf("  VolumeName:       %s", cfg.VolumeName)
+	log.Printf("  NodeID:           %s", cfg.NodeID)
+	log.Printf("  NodePool:         %s", cfg.NodePool)
+	log.Printf("  CapacityMinBytes: %d (%d MB)", cfg.CapacityMinBytes, cfg.CapacityMinBytes/(1024*1024))
+	log.Printf("  CapacityMaxBytes: %d (%d MB)", cfg.CapacityMaxBytes, cfg.CapacityMaxBytes/(1024*1024))
+	log.Printf("  Parameters (raw): '%s'", cfg.Parameters)
+	log.Printf("  CreatedPath:      %s", cfg.CreatedPath)
+	log.Printf("========================================")
+
 	if cfg.VolumesDir == "" {
 		return fmt.Errorf("variable 'DHV_VOLUMES_DIR' must not be empty")
 	}
@@ -44,7 +61,7 @@ func Create(cfg config.DynamicHostVolumeConfig) error {
 	}
 
 	if _, err := os.Stat(imagePath); os.IsNotExist(err) {
-		log.Printf("Creating filesystem image at %s", imagePath)
+		log.Printf("Creating filesystem image at %s (sparse: %v)", imagePath, params.Sparse)
 
 		file, err := os.Create(imagePath)
 		if err != nil {
@@ -56,9 +73,15 @@ func Create(cfg config.DynamicHostVolumeConfig) error {
 			return fmt.Errorf("failed to set size for '%s': %w", imagePath, err)
 		}
 
-		zeros := make([]byte, 1024*1024) // 1MB
-		if _, err := file.Write(zeros); err != nil {
-			return fmt.Errorf("failed to initialize '%s': %w", imagePath, err)
+		// 只有在非稀疏模式下才写入初始数据
+		if !params.Sparse {
+			log.Printf("Writing initial data (non-sparse mode)")
+			zeros := make([]byte, 1024*1024) // 1MB
+			if _, err := file.Write(zeros); err != nil {
+				return fmt.Errorf("failed to initialize '%s': %w", imagePath, err)
+			}
+		} else {
+			log.Printf("Sparse file mode enabled, skipping initial write")
 		}
 
 		if err := system.Format(imagePath, params.FileSystem); err != nil {
