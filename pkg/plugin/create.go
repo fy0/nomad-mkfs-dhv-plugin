@@ -6,29 +6,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/mwantia/nomad-mkfs-dhv-plugin/pkg/config"
 	"github.com/mwantia/nomad-mkfs-dhv-plugin/pkg/system"
 )
 
 func Create(cfg config.DynamicHostVolumeConfig) error {
-	// 打印所有接收到的配置
-	log.Printf("========================================")
-	log.Printf("DEBUG: Create() called with configuration:")
-	log.Printf("  Operation:        %s", cfg.Operation)
-	log.Printf("  VolumesDir:       %s", cfg.VolumesDir)
-	log.Printf("  VolumeID:         %s", cfg.VolumeID)
-	log.Printf("  PluginDir:        %s", cfg.PluginDir)
-	log.Printf("  Namespace:        %s", cfg.Namespace)
-	log.Printf("  VolumeName:       %s", cfg.VolumeName)
-	log.Printf("  NodeID:           %s", cfg.NodeID)
-	log.Printf("  NodePool:         %s", cfg.NodePool)
-	log.Printf("  CapacityMinBytes: %d (%d MB)", cfg.CapacityMinBytes, cfg.CapacityMinBytes/(1024*1024))
-	log.Printf("  CapacityMaxBytes: %d (%d MB)", cfg.CapacityMaxBytes, cfg.CapacityMaxBytes/(1024*1024))
-	log.Printf("  Parameters (raw): '%s'", cfg.Parameters)
-	log.Printf("  CreatedPath:      %s", cfg.CreatedPath)
-	log.Printf("========================================")
-
 	if cfg.VolumesDir == "" {
 		return fmt.Errorf("variable 'DHV_VOLUMES_DIR' must not be empty")
 	}
@@ -48,8 +32,13 @@ func Create(cfg config.DynamicHostVolumeConfig) error {
 		log.Printf("Warning: Unable to parse parameters, using defaults: %v", err)
 	}
 
+	// 生成镜像文件名: yyyymmdd-shortuuid-volumename.img
+	dateStr := time.Now().Format("20060102")
+	shortID := cfg.VolumeID[:8]
+	imageName := fmt.Sprintf("%s-%s-%s.img", dateStr, shortID, cfg.VolumeName)
+
 	volumePath := filepath.Join(cfg.VolumesDir, cfg.VolumeID)
-	imagePath := fmt.Sprintf("%s.img", volumePath)
+	imagePath := filepath.Join(cfg.VolumesDir, imageName)
 
 	if err := os.MkdirAll(volumePath, 0o755); err != nil {
 		return fmt.Errorf("failed to create volume directory: %v", err)

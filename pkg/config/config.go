@@ -59,41 +59,19 @@ func SetupDynamicHostVolumeConfig() (DynamicHostVolumeConfig, error) {
 }
 
 func (cfg *DynamicHostVolumeConfig) GetParams() (*DynamicHostVolumeParameters, error) {
-	// 打印接收到的原始参数
-	log.Printf("========================================")
-	log.Printf("DEBUG: Raw DHV_PARAMETERS received from Nomad:")
-	log.Printf("  Value: '%s'", cfg.Parameters)
-	log.Printf("  Length: %d bytes", len(cfg.Parameters))
-	log.Printf("  Empty: %v", cfg.Parameters == "")
-	log.Printf("========================================")
-
 	params := &DynamicHostVolumeParameters{
 		FileSystem:   DefaultFilesystem,
 		BlockSize:    DefaultBlockSize,
 		MountOptions: DefaultMountOptions,
 		ReadOnly:     false,
-		Sparse:       DefaultSparse, // 默认启用稀疏文件
+		Sparse:       DefaultSparse,
 	}
 
 	if cfg.Parameters != "" {
-		log.Printf("DEBUG: Attempting to parse parameters as JSON...")
 		if err := json.Unmarshal([]byte(cfg.Parameters), &params); err != nil {
-			log.Printf("DEBUG: JSON parse FAILED: %v", err)
 			return nil, fmt.Errorf("unable to parse parameters as json: %w", err)
 		}
-		log.Printf("DEBUG: JSON parse SUCCESS")
-		log.Printf("DEBUG: Parsed parameters: %+v", params)
-	} else {
-		log.Printf("DEBUG: No parameters provided, using defaults")
 	}
-
-	log.Printf("DEBUG: Final parameters to use:")
-	log.Printf("  FileSystem:   %s", params.FileSystem)
-	log.Printf("  BlockSize:    %s", params.BlockSize)
-	log.Printf("  MountOptions: %s", params.MountOptions)
-	log.Printf("  ReadOnly:     %v", params.ReadOnly)
-	log.Printf("  Sparse:       %v", params.Sparse)
-	log.Printf("========================================")
 
 	return params, nil
 }
