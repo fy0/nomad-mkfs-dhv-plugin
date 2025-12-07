@@ -20,8 +20,8 @@ tasks:
         desc: Build golang executable in ./build
         cmds:
           - task: setup
-          - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ${BUILD_ARGS} -a -ldflags '-s -w -extldflags "-static"' -trimpath -o ./build/${BUILD_NAME}-amd64 ./cmd/${BUILD_NAME}/main.go
-          - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build ${BUILD_ARGS} -a -ldflags '-s -w -extldflags "-static"' -trimpath -o ./build/${BUILD_NAME}-arm64 ./cmd/${BUILD_NAME}/main.go
+          - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build ${BUILD_ARGS} -a -ldflags '-s -w -extldflags "-static"' -trimpath -o ./build/amd64/${BUILD_NAME}-dhv ./cmd/${BUILD_NAME}/main.go
+          - CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build ${BUILD_ARGS} -a -ldflags '-s -w -extldflags "-static"' -trimpath -o ./build/arm64/${BUILD_NAME}-dhv ./cmd/${BUILD_NAME}/main.go
 
     test-fingerprint:
         desc: Test fingerprint operation for plugin

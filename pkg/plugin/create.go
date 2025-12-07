@@ -62,15 +62,9 @@ func Create(cfg config.DynamicHostVolumeConfig) error {
 			return fmt.Errorf("failed to set size for '%s': %w", imagePath, err)
 		}
 
-		// 只有在非稀疏模式下才写入初始数据
-		if !params.Sparse {
-			log.Printf("Writing initial data (non-sparse mode)")
-			zeros := make([]byte, 1024*1024) // 1MB
-			if _, err := file.Write(zeros); err != nil {
-				return fmt.Errorf("failed to initialize '%s': %w", imagePath, err)
-			}
-		} else {
-			log.Printf("Sparse file mode enabled, skipping initial write")
+		zeros := make([]byte, 1024*1024) // 1MB
+		if _, err := file.Write(zeros); err != nil {
+			return fmt.Errorf("failed to initialize '%s': %w", imagePath, err)
 		}
 
 		if err := system.Format(imagePath, params.FileSystem); err != nil {
