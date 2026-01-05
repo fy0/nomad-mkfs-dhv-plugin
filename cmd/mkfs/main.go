@@ -58,10 +58,17 @@ var (
 			return plugin.Delete(Config)
 		},
 	}
+	Usage = &cobra.Command{
+		Use:   "usage",
+		Short: "Returns the disk usage statistics for the volume",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return plugin.Usage(Config)
+		},
+	}
 )
 
 func main() {
-	Root.AddCommand(Fingerprint, Create, Delete)
+	Root.AddCommand(Fingerprint, Create, Delete, Usage)
 
 	if err := Root.Execute(); err != nil {
 		resp := StdErrResponse{

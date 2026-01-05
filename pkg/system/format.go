@@ -12,7 +12,13 @@ func Format(path, filesystem string) error {
 		return fmt.Errorf("formatting tool for '%s' not found: %w", filesystem, err)
 	}
 
-	cmd := exec.Command(lookup, path)
+	var cmd *exec.Cmd
+	if filesystem == "ext4" {
+		// 默认创建无日志的 ext4 文件系统
+		cmd = exec.Command(lookup, "-O", "^has_journal", path)
+	} else {
+		cmd = exec.Command(lookup, path)
+	}
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {

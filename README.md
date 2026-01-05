@@ -65,6 +65,136 @@ parameters {
 | `mount_options` | Additional mount options | `""` |
 | `read_only` | Mount as read-only | `false` |
 
+## Volume Usage Monitoring
+
+This plugin includes a custom `usage` command to query disk usage for volumes. Note that this is **not** part of the official Nomad DHV specification, but a useful extension for monitoring.
+
+### Quick Usage
+
+```bash
+# Query usage by volume ID
+DHV_VOLUMES_DIR=/opt/nomad/volumes \
+DHV_VOLUME_ID=abc123-def456-ghi789 \
+./mkfs usage
+
+# Query usage by mount path
+DHV_CREATED_PATH=/opt/nomad/volumes/abc123-def456-ghi789 \
+./mkfs usage
+```
+
+### Using Helper Scripts
+
+The `scripts/` directory contains convenience scripts:
+
+#### Volume Manager (Linux/macOS)
+
+```bash
+# Make script executable
+chmod +x scripts/volume-manager.sh
+
+# List all volumes
+./scripts/volume-manager.sh list
+
+# Query usage for a specific volume
+./scripts/volume-manager.sh usage <volume-id>
+
+# Query usage for all volumes
+./scripts/volume-manager.sh usage-all
+
+# Show detailed volume information
+./scripts/volume-manager.sh info <volume-id>
+```
+
+#### Simple Usage Query (Linux/macOS)
+
+```bash
+chmod +x scripts/volume-usage.sh
+./scripts/volume-usage.sh <volume-id>
+```
+
+#### PowerShell (Windows)
+
+```powershell
+.\scripts\volume-usage.ps1 <volume-id>
+
+# With custom volumes directory
+.\scripts\volume-usage.ps1 <volume-id> -VolumesDir "D:\volumes"
+```
+
+### Integration Examples
+
+#### Prometheus Node Exporter
+
+Create a textfile collector script:
+
+```bash
+#!/bin/bash
+# /etc/node_exporter/volume-usage-collector.sh
+
+VOLUMES_DIR="/opt/nomad/volumes"
+PLUGIN="/usr/local/bin/mkfs"
+OUTPUT="/var/lib/node_exporter/textfile_collector/volume_usage.prom"
+
+echo "# HELP nomad_dhv_volume_used_bytes Volume used bytes" > "$OUTPUT"
+echo "# TYPE nomad_dhv_volume_used_bytes gauge" >> "$OUTPUT"
+echo "# HELP nomad_dhv_volume_total_bytes Volume total bytes" >> "$OUTPUT"
+echo "# TYPE nomad_dhv_volume_total_bytes gauge" >> "$OUTPUT"
+
+for dir in "$VOLUMES_DIR"/*; do
+    if [ -d "$dir" ]; then
+        volume_id=$(basename "$dir")
+        result=$(DHV_VOLUMES_DIR="$VOLUMES_DIR" DHV_VOLUME_ID="$volume_id" "$PLUGIN" usage 2>/dev/null)
+
+        if [ $? -eq 0 ]; then
+            used=$(echo "$result" | jq -r '.used_bytes')
+            total=$(echo "$result" | jq -r '.total_bytes')
+
+            echo "nomad_dhv_volume_used_bytes{volume_id=\"$volume_id\"} $used" >> "$OUTPUT"
+            echo "nomad_dhv_volume_total_bytes{volume_id=\"$volume_id\"} $total" >> "$OUTPUT"
+        fi
+    fi
+done
+```
+
+Schedule with cron:
+
+```bash
+*/5 * * * * /etc/node_exporter/volume-usage-collector.sh
+```
+
+#### Telegraf Integration
+
+```toml
+[[inputs.exec]]
+  commands = ["/usr/local/bin/volume-usage-wrapper.sh"]
+  timeout = "5s"
+  data_format = "json"
+  name_suffix = "_dhv"
+  json_string_fields = ["volume_id"]
+  tag_keys = ["volume_id"]
+```
+
+### Response Format
+
+The `usage` command returns JSON:
+
+```json
+{
+  "used_bytes": 1234567,
+  "total_bytes": 524288000
+}
+```
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DHV_VOLUMES_DIR` | Yes* | Directory where volumes are stored |
+| `DHV_VOLUME_ID` | Yes* | Volume ID to query |
+| `DHV_CREATED_PATH` | Yes* | Alternative: Direct path to volume mount |
+
+\* Either `DHV_VOLUMES_DIR` + `DHV_VOLUME_ID` OR `DHV_CREATED_PATH` is required.
+
 ## Development
 
 ### Prerequisites

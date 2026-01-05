@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/mwantia/nomad-mkfs-dhv-plugin/pkg/config"
 	"github.com/mwantia/nomad-mkfs-dhv-plugin/pkg/system"
@@ -32,13 +31,8 @@ func Create(cfg config.DynamicHostVolumeConfig) error {
 		log.Printf("Warning: Unable to parse parameters, using defaults: %v", err)
 	}
 
-	// 生成镜像文件名: yyyymmdd-shortuuid-volumename.img
-	dateStr := time.Now().Format("20060102")
-	shortID := cfg.VolumeID[:8]
-	imageName := fmt.Sprintf("%s-%s-%s.img", dateStr, shortID, cfg.VolumeName)
-
 	volumePath := filepath.Join(cfg.VolumesDir, cfg.VolumeID)
-	imagePath := filepath.Join(cfg.VolumesDir, imageName)
+	imagePath := filepath.Join(cfg.VolumesDir, cfg.VolumeID+".img")
 
 	if err := os.MkdirAll(volumePath, 0o755); err != nil {
 		return fmt.Errorf("failed to create volume directory: %v", err)
