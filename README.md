@@ -12,6 +12,10 @@ This plugin enables Nomad to dynamically create and manage filesystem volumes on
 >
 > Additionally, this README isn't always up-to-date, so not everything mentioned here might work as described.
 
+> [!CAUTION]
+> Windows is not supported.
+> The plugin relies on Unix-style tooling such as `mkfs.*`, `mount`, `/proc/mounts`, and `du -sb`, and is currently intended for Linux hosts.
+
 ## Features
 
 - Create and mount filesystem images dynamically
@@ -86,7 +90,7 @@ DHV_CREATED_PATH=/opt/nomad/volumes/abc123-def456-ghi789 \
 
 The `scripts/` directory contains convenience scripts:
 
-#### Volume Manager (Linux/macOS)
+#### Volume Manager (Linux)
 
 ```bash
 # Make script executable
@@ -105,20 +109,11 @@ chmod +x scripts/volume-manager.sh
 ./scripts/volume-manager.sh info <volume-id>
 ```
 
-#### Simple Usage Query (Linux/macOS)
+#### Simple Usage Query (Linux)
 
 ```bash
 chmod +x scripts/volume-usage.sh
 ./scripts/volume-usage.sh <volume-id>
-```
-
-#### PowerShell (Windows)
-
-```powershell
-.\scripts\volume-usage.ps1 <volume-id>
-
-# With custom volumes directory
-.\scripts\volume-usage.ps1 <volume-id> -VolumesDir "D:\volumes"
 ```
 
 ### Integration Examples

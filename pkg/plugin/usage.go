@@ -48,14 +48,13 @@ func Usage(cfg config.DynamicHostVolumeConfig) error {
 		return fmt.Errorf("failed to get disk usage: %w", err)
 	}
 
-	// Get total bytes using statfs
-	stat, err := system.GetStatfs(path)
+	// Get total bytes using filesystem stats
+	stats, err := system.GetFSStats(path)
 	if err != nil {
 		return fmt.Errorf("failed to get filesystem stats: %w", err)
 	}
 
-	// Calculate total bytes from statfs
-	totalBytes := int64(stat.Blocks * uint64(stat.Bsize))
+	totalBytes := stats.TotalBytes
 
 	log.Printf("Volume usage: %d/%d bytes (%.2f%%)", usedBytes, totalBytes, float64(usedBytes)/float64(totalBytes)*100)
 
