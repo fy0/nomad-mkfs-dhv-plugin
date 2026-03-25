@@ -2,6 +2,8 @@
 
 > Note: Windows is not supported. This plugin depends on Unix-style `mkfs`, mount, and filesystem inspection tooling and is intended for Linux hosts.
 
+> Resize note: `resize` currently supports ext4 growth only. Shrinking is not supported.
+
 本指南说明如何使用命令行直接调用 DHV 插件查询卷使用情况。
 
 ## 前言

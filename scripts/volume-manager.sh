@@ -25,6 +25,8 @@ Usage: $0 <command> [options]
 Commands:
   list              List all volumes in the volumes directory
   usage <volume-id> Query disk usage for a specific volume
+  resize <volume-id> <size-bytes>
+                    Grow a specific ext4 volume to the requested size in bytes
   usage-all         Query disk usage for all volumes
   info <volume-id>  Show detailed information about a volume
 
@@ -41,6 +43,9 @@ Examples:
 
   # Query usage for a specific volume
   $0 usage abc123-def456-ghi789
+
+  # Grow a specific ext4 volume to 2 GiB
+  $0 resize abc123-def456-ghi789 2147483648
 
   # Query usage for all volumes
   $0 usage-all
@@ -152,6 +157,49 @@ cmd_usage() {
     fi
 }
 
+cmd_resize() {
+    local volume_id="$1"
+    local size_bytes="$2"
+
+    if [ -z "$volume_id" ] || [ -z "$size_bytes" ]; then
+        echo -e "${RED}Error: Volume ID and target size in bytes are required${NC}"
+        usage
+    fi
+
+    check_plugin
+
+    local volume_path="$VOLUMES_DIR/$volume_id"
+    if [ ! -d "$volume_path" ]; then
+        echo -e "${RED}Error: Volume directory not found: $volume_path${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}=== Resize Volume: $volume_id ===${NC}"
+
+    local result=$(DHV_VOLUMES_DIR="$VOLUMES_DIR" DHV_VOLUME_ID="$volume_id" DHV_RESIZE_BYTES="$size_bytes" "$PLUGIN_PATH" resize 2>/dev/null)
+
+    if [ $? -eq 0 ]; then
+        if command -v jq &> /dev/null; then
+            local old_bytes=$(echo "$result" | jq -r '.old_bytes')
+            local new_bytes=$(echo "$result" | jq -r '.new_bytes')
+            local filesystem=$(echo "$result" | jq -r '.filesystem')
+            local mounted=$(echo "$result" | jq -r '.mounted')
+
+            echo -e "  Filesystem: $filesystem"
+            echo -e "  Mounted:    $mounted"
+            echo -e "  Old Size:   $(format_bytes $old_bytes) (${old_bytes} bytes)"
+            echo -e "  New Size:   $(format_bytes $new_bytes) (${new_bytes} bytes)"
+        else
+            echo "$result"
+            echo ""
+            echo -e "${YELLOW}Tip: Install 'jq' for formatted output${NC}"
+        fi
+    else
+        echo -e "${RED}Error: Failed to resize volume${NC}"
+        exit 1
+    fi
+}
+
 # 查询所有卷的使用情况
 cmd_usage_all() {
     echo -e "${GREEN}=== All Volumes Usage ===${NC}"
@@ -241,6 +289,9 @@ main() {
             ;;
         usage)
             cmd_usage "$@"
+            ;;
+        resize)
+            cmd_resize "$@"
             ;;
         usage-all)
             cmd_usage_all "$@"

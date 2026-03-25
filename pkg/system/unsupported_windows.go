@@ -17,6 +17,14 @@ func GetFSStats(path string) (FSStats, error) {
 	return FSStats{}, unsupportedOnWindows("filesystem statistics")
 }
 
+func GetMountDetails(path string) (MountDetails, error) {
+	return MountDetails{}, unsupportedOnWindows("mount inspection")
+}
+
+func ProbeFilesystemType(path string) (string, error) {
+	return "", unsupportedOnWindows("filesystem probing")
+}
+
 func IsMounted(path string) (bool, error) {
 	return false, unsupportedOnWindows("mount checks")
 }
@@ -31,4 +39,8 @@ func UmountImage(path string) error {
 
 func Format(path, filesystem string) error {
 	return unsupportedOnWindows("filesystem formatting")
+}
+
+func ResizeExt4(path, imagePath, mountSource string, mounted bool) error {
+	return unsupportedOnWindows("filesystem resizing")
 }

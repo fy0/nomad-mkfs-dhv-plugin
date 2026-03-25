@@ -73,6 +73,8 @@ parameters {
 
 This plugin includes a custom `usage` command to query disk usage for volumes. Note that this is **not** part of the official Nomad DHV specification, but a useful extension for monitoring.
 
+This plugin also includes a custom `resize` command for growing existing ext4-backed volumes. `resize` is Linux-only, supports growth only, and does not support shrinking.
+
 ### Quick Usage
 
 ```bash
@@ -84,6 +86,12 @@ DHV_VOLUME_ID=abc123-def456-ghi789 \
 # Query usage by mount path
 DHV_CREATED_PATH=/opt/nomad/volumes/abc123-def456-ghi789 \
 ./mkfs usage
+
+# Grow an ext4 volume image to 2 GiB
+DHV_VOLUMES_DIR=/opt/nomad/volumes \
+DHV_VOLUME_ID=abc123-def456-ghi789 \
+DHV_RESIZE_BYTES=2147483648 \
+./mkfs resize
 ```
 
 ### Using Helper Scripts
@@ -101,6 +109,9 @@ chmod +x scripts/volume-manager.sh
 
 # Query usage for a specific volume
 ./scripts/volume-manager.sh usage <volume-id>
+
+# Grow a specific ext4 volume to the requested byte size
+./scripts/volume-manager.sh resize <volume-id> <size-bytes>
 
 # Query usage for all volumes
 ./scripts/volume-manager.sh usage-all
@@ -177,6 +188,18 @@ The `usage` command returns JSON:
 {
   "used_bytes": 1234567,
   "total_bytes": 524288000
+}
+```
+
+The `resize` command returns JSON:
+
+```json
+{
+  "path": "/opt/nomad/volumes/abc123-def456-ghi789",
+  "old_bytes": 1073741824,
+  "new_bytes": 2147483648,
+  "filesystem": "ext4",
+  "mounted": true
 }
 ```
 

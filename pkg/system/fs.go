@@ -6,3 +6,7 @@ type FSStats struct {
 	FreeBytes  int64
 }
 
+type MountDetails struct {
+	Source string
+	FSType string
+}

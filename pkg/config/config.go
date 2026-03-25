@@ -30,6 +30,7 @@ type DynamicHostVolumeConfig struct {
 
 	CapacityMinBytes int64 `mapstructure:"CAPACITY_MIN_BYTES"`
 	CapacityMaxBytes int64 `mapstructure:"CAPACITY_MAX_BYTES"`
+	ResizeBytes      int64 `mapstructure:"RESIZE_BYTES"`
 
 	CreatedPath string `mapstructure:"CREATED_PATH"`
 }
@@ -91,6 +92,7 @@ func newDefault() DynamicHostVolumeConfig {
 
 		CapacityMinBytes: 0,
 		CapacityMaxBytes: 0,
+		ResizeBytes:      0,
 
 		CreatedPath: "",
 	}

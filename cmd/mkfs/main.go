@@ -61,6 +61,13 @@ var (
 			return plugin.Delete(Config)
 		},
 	}
+	Resize = &cobra.Command{
+		Use:   "resize",
+		Short: "Grows an existing volume image and filesystem",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return plugin.Resize(Config)
+		},
+	}
 	Usage = &cobra.Command{
 		Use:   "usage",
 		Short: "Returns the disk usage statistics for the volume",
@@ -71,7 +78,7 @@ var (
 )
 
 func main() {
-	Root.AddCommand(Fingerprint, Create, Delete, Usage)
+	Root.AddCommand(Fingerprint, Create, Delete, Resize, Usage)
 
 	if err := Root.Execute(); err != nil {
 		resp := StdErrResponse{

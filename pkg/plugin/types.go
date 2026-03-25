@@ -15,3 +15,11 @@ type VolumeUsageResponse struct {
 	UsedBytes  int64 `json:"used_bytes"`
 	TotalBytes int64 `json:"total_bytes"`
 }
+
+type VolumeResizeResponse struct {
+	Path       string `json:"path"`
+	OldBytes   int64  `json:"old_bytes"`
+	NewBytes   int64  `json:"new_bytes"`
+	FileSystem string `json:"filesystem"`
+	Mounted    bool   `json:"mounted"`
+}
